@@ -1,0 +1,21 @@
+At 2: 32768 Gram residues, 21504 maximal.
+K3: 28420 residues with a primitive representation at 2.
+K9: 22624 residues with a primitive representation at 2.
+At 3: 531441 Gram residues, 459108 maximal.
+K3: 451386 residues with a primitive representation at 3.
+K9: 355485 residues with a primitive representation at 3.
+K3: remaining binary ranges have a <= 494, beta <= 86153/200.
+K9: remaining binary ranges have a <= 855, beta <= 42642/59.
+L6: Last-column bounds on all blocks in the uniform ranges
+  Binary blocks considered in the uniform ranges: 1835695
+  Blocks with a last-column class of bound at least D0: 191
+  Bounded integral lifts in those classes: 68853
+  Ternary Gram matrices tested individually: 23981
+L6 witnesses of sup norms 0 / 1 / 2 = (21552, 2429, 0).
+L9: Last-column bounds on all blocks in the uniform ranges
+  Binary blocks considered in the uniform ranges: 23103909
+  Blocks with a last-column class of bound at least D0: 162
+  Bounded integral lifts in those classes: 10407
+  Ternary Gram matrices tested individually: 7556
+L9 witnesses of sup norms 0 / 1 / 2 = (4733, 2767, 56).
+All checks passed.

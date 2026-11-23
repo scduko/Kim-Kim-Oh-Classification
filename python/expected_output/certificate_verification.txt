@@ -1,0 +1,18 @@
+K3: profiles at 2 (2, 3, 3, 3), at 3 (9, 5, 5); 536 nonempty (a,t) ranges; a <= 494, beta <= 86153/200.
+K9: profiles at 2 (7, 4, 9, 4), at 3 (9, 6, 7); 1136 nonempty (a,t) ranges; a <= 855, beta <= 42642/59.
+Local choices (x,h,m) verified.
+Certificate 4.3, L6: 534827 blocks in the region for H_j(B,t); 836 require bounds by last-column class.
+  At t=5, 0 of 175522 blocks require bounds by last-column class.
+  Of 7732352 candidate residues mod 24, 273024 have no maximal lift at three.
+  Locally compatible: 7241984 bounded below D0; 217344 retained and bounded by U(B).
+  Surviving last-column classes: 217344 across 99 blocks.
+  Bounded lifts: 29831; ternary Gram matrices tested individually: 10905.
+Certificate 4.3, L9: 8521181 blocks in the region for H_j(B,t); 5147 require bounds by last-column class.
+  At t=5, 7 of 7190527 blocks require bounds by last-column class.
+  Of 52056704 candidate residues mod 24, 196736 have no maximal lift at three.
+  Locally compatible: 51513984 bounded below D0; 345984 retained and bounded by U(B).
+  Surviving last-column classes: 345984 across 162 blocks.
+  Bounded lifts: 10407; ternary Gram matrices tested individually: 7556.
+L6: 10905 witnesses; sup norms 0/1/2 (9580, 1325, 0); enlargements neither/2 only/3 only/both (10797, 7, 100, 1)
+L9: 7556 witnesses; sup norms 0/1/2 (4733, 2767, 56); enlargements neither/2 only/3 only/both (6153, 1219, 95, 89)
+All certificate checks passed.

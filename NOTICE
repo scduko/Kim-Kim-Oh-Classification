@@ -1,0 +1,12 @@
+3-universal lattices of rank 6, and a quinary exception: Lean formalization
+
+This repository includes a subset of QuadFormsKB, in the directory lean/QuadFormsKB/:
+
+  QuadFormsKB
+  Copyright 2026 Jonathan Hanke
+
+  This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+QuadFormsKB's license is lean/QuadFormsKB/LICENSE. The included files were ported from Lean 4.35 /
+Mathlib v4.35.0 to Lean 4.36 / Mathlib v4.36.0; every changed file says so in its first line,
+and lean/QuadFormsKB/PORT.md describes the changes. The files lean/QuadFormsKB/Port/*.lean are new.

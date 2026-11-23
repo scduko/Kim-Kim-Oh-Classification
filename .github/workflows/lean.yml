@@ -1,0 +1,97 @@
+# Builds the modules that do not depend on a generated kernel check of §4, with the QuadFormsKB
+# modules they import, and audits the axioms of their main theorems (lean/docs/STATUS.md). The kernel
+# checks of §4 take several CPU-hours and are built locally; lean/docs/STATUS.md records the full
+# verification. `lean/scripts/ci_modules.py` computes the module list from the import graph.
+name: Lean
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'lean/docs/**', 'python/**']
+  pull_request:
+    paths-ignore: ['**.md', 'lean/docs/**', 'python/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Keep only the newest run per pull request or branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: lean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Free disk space
+        working-directory: .
+        # Mathlib's cache and the build of QuadFormsKB do not fit the runner's free disk otherwise.
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Reject forbidden constructs
+        run: |
+          if grep -rnwE 'sorry|admit|native_decide|implemented_by' KimKimOh KimKimOh.lean; then
+            echo "::error::forbidden construct in the sources"; exit 1
+          fi
+          if grep -rnE '^\s*axiom\s|@\[extern' KimKimOh KimKimOh.lean QuadFormsKB; then
+            echo "::error::axiom or extern declaration in the sources"; exit 1
+          fi
+      - name: Restore pinned Lean dependencies
+        id: lean-deps
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: lean/.lake
+          key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean/lean-toolchain') }}-${{ hashFiles('lean/lake-manifest.json') }}-dependencies
+          restore-keys: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean/lean-toolchain') }}-${{ hashFiles('lean/lake-manifest.json') }}-
+      - name: Prepare Lean dependencies
+        uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6 # v1
+        with:
+          lake-package-directory: lean
+          auto-config: "false"
+          build: "false"
+          test: "false"
+          lint: "false"
+          use-github-cache: "false"
+          use-mathlib-cache: ${{ steps.lean-deps.outputs.cache-matched-key == '' }}
+      - name: Save new dependency cache
+        if: steps.lean-deps.outputs.cache-matched-key == ''
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: lean/.lake
+          key: ${{ steps.lean-deps.outputs.cache-primary-key }}
+      - name: Restore project build cache
+        id: project-build-cache
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: lean/.lake/build
+          key: project-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean/lean-toolchain', 'lean/lake-manifest.json') }}-${{ hashFiles('lean/lakefile.toml', 'lean/KimKimOh.lean', 'lean/KimKimOh/**/*.lean', 'lean/QuadFormsKB/**/*.lean') }}
+          restore-keys: |
+            project-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean/lean-toolchain', 'lean/lake-manifest.json') }}-
+      - name: Build the light modules
+        run: lake build $(python3 scripts/ci_modules.py)
+      - name: Audit the axioms of the light theorems
+        run: lake env lean scripts/CheckAxioms.lean
+      # A complete build is saved under the main key. A failed or cancelled run saves its partial
+      # build under a key of its own, which the next run restores and completes; a partial build
+      # never takes the main key, since a cache cannot be overwritten.
+      - name: Save the complete project build
+        if: success() && steps.project-build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: lean/.lake/build
+          key: ${{ steps.project-build-cache.outputs.cache-primary-key }}
+      - name: Save the partial project build
+        if: (failure() || cancelled()) && steps.project-build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: lean/.lake/build
+          key: ${{ steps.project-build-cache.outputs.cache-primary-key }}-partial-${{ github.run_id }}-${{ github.run_attempt }}

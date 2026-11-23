@@ -1,0 +1,26 @@
+name = "KimKimOh"
+version = "4.0.0"
+keywords = ["math"]
+defaultTargets = ["KimKimOh"]
+
+[leanOptions]
+pp.unicode.fun = true
+
+# Mathlib is required by explicit git URL; keep `rev` in step with `lean-toolchain`.
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "v4.36.0"
+
+# The formalization. Warnings are errors, so `sorry` fails the build.
+[[lean_lib]]
+name = "KimKimOh"
+leanOptions = { relaxedAutoImplicit = false, warningAsError = true, maxSynthPendingDepth = 3 }
+
+# The vendored subset of Hanke's QuadFormsKB (`QuadFormsKB/PORT.md`), with upstream's options.
+# Only the modules imported by `KimKimOh` are present, so the library has no root module;
+# `lake build KimKimOh` builds the ones it needs.
+[[lean_lib]]
+name = "QuadFormsKB"
+globs = ["QuadFormsKB.+"]
+leanOptions = { autoImplicit = false }

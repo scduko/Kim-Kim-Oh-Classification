@@ -1,0 +1,45 @@
+# Checks the manuscript's supplement and its link to the Lean data (lean/docs/STATUS.md): the
+# certificate checker must reproduce expected_output/certificate_verification.txt byte for byte,
+# and the generators that read the supplement must reproduce the committed Lean files.
+name: Supplement
+
+on:
+  push:
+    branches: [main]
+    paths: ['python/**', 'lean/scripts/**', 'lean/KimKimOh/Tables/Data/**', 'lean/KimKimOh/Terminal/**',
+            'lean/KimKimOh/FirstPassChecks/**', '.github/workflows/supplement.yml']
+  pull_request:
+    paths: ['python/**', 'lean/scripts/**', 'lean/KimKimOh/Tables/Data/**', 'lean/KimKimOh/Terminal/**',
+            'lean/KimKimOh/FirstPassChecks/**', '.github/workflows/supplement.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  supplement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      # The runner's Python 3 (3.10 or later; the programs use only the standard library).
+      - name: Python version
+        run: python3 --version
+      - name: Check the certificates
+        working-directory: python
+        run: |
+          python3 verify_ternary_certificates.py --workers 4 > "$RUNNER_TEMP/verification.txt"
+          diff -u expected_output/certificate_verification.txt "$RUNNER_TEMP/verification.txt"
+      - name: Reproduce the Lean data read from the supplement
+        working-directory: lean
+        run: |
+          ARCHIVE=../python
+          python3 -I scripts/tables/gen_profiles.py "$ARCHIVE"
+          python3 -I scripts/tables/gen_chunkdata.py "$ARCHIVE"
+          python3 -I scripts/terminal/gen_terminal.py "$ARCHIVE"
+          git diff --exit-code
